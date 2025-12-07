@@ -47,13 +47,83 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello World! sojib here");
 });
 
-app.post("/", (req: Request, res: Response) => {
+app.post("/users", async (req: Request, res: Response) => {
   console.log(req.body);
+  const { name, email, phone, address } = req.body;
 
-  res.status(201).json({
-    success: true,
-    message: "Data posted successfully",
-  });
+  if (!name || !email || !phone) {
+    return res.status(400).json({
+      success: false,
+      message: "name, email and phone are required",
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      "INSERT INTO users (name, email,phone, address) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING *",
+      [name, email, phone, address || null]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(409).json({
+        success: false,
+        message: "email or phone already exists",
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      data: result.rows[0],
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+
+app.get("/users", async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query("SELECT * FROM users");
+    res.status(200).json({
+      success: true,
+      message: "Users retrieved successfully",
+      data: result.rows,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+
+app.get("/users/:id", async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query("SELECT * FROM users WHERE id = $1", [
+      req.params.id,
+    ]);
+    console.log(result.rows);
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: "User retrieved successfully",
+        data: result.rows[0],
+      });
+    }
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
 });
 
 app.listen(port, () => {
