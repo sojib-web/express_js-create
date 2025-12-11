@@ -1,23 +1,11 @@
-import express, { Request, Response } from "express";
-import { pool } from "../../config/db";
+import express from "express";
 import { userController } from "./user.controller";
 
 const router = express.Router();
 // create user , userRoute
 router.post("/", userController.createUser);
-router.get("/", async (req: Request, res: Response) => {
-  try {
-    const result = await pool.query("SELECT * FROM users");
-    res.status(200).json({
-      success: true,
-      message: "Users retrieved successfully",
-      data: result.rows,
-    });
-  } catch (err: any) {
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
-  }
-});
+router.get("/", userController.getAllUsers);
+router.get("/:id", userController.getUserById);
+router.put("/:id", userController.updateUser);
+router.delete("/:id", userController.deleteUser);
 export const userRoute = router;
