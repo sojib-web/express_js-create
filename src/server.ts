@@ -18,16 +18,13 @@ initDB();
 app.get("/", logger, (req: Request, res: Response) => {
   res.send("Hello World! This is the User and Todo API server.");
 });
-
+// user routes can be added here
 app.use("/users", userRoute);
 // todo routes can be added here
-
-// auth routes can be added here
-
-app.use("/auth", authRoute);
-
 app.use("/todos", todoRoute);
-// app.delete("/todos/:id", );
+// auth routes can be added here
+app.use("/auth", authRoute);
+// global error handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
